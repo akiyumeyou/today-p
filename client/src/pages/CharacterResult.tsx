@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { getRandomResponse, Mood } from "@/lib/characters";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Volume2 } from "lucide-react";
 
 export default function CharacterResult() {
   const [match, params] = useRoute("/result/:mood");
@@ -13,6 +13,27 @@ export default function CharacterResult() {
   // In a real app we might want to persist this in state to prevent refresh changing it, 
   // but for this simple app, re-rolling on refresh is fine/fun.
   const { character, quote } = useMemo(() => getRandomResponse(mood), [mood]);
+
+  const playVoice = () => {
+    if (!window.speechSynthesis) return;
+    
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(quote);
+    utterance.lang = "ja-JP";
+    utterance.pitch = character.voiceSettings.pitch;
+    utterance.rate = character.voiceSettings.rate;
+    
+    // Try to find a Japanese voice
+    const voices = window.speechSynthesis.getVoices();
+    const jaVoice = voices.find(v => v.lang.includes("ja"));
+    if (jaVoice) {
+      utterance.voice = jaVoice;
+    }
+
+    window.speechSynthesis.speak(utterance);
+  };
 
   if (!match) return null;
 
@@ -43,7 +64,19 @@ export default function CharacterResult() {
         {/* Speech bubble triangle */}
         <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-8 h-8 bg-white rotate-45 border-l border-t border-stone-100" />
         
-        <h2 className="text-lg font-bold text-primary mb-4">{character.name}</h2>
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <h2 className="text-lg font-bold text-primary">{character.name}</h2>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={playVoice}
+            className="rounded-full hover:bg-orange-100 text-orange-400"
+            title="声を聴く"
+          >
+            <Volume2 className="w-5 h-5" />
+          </Button>
+        </div>
+        
         <p className="text-2xl md:text-3xl font-medium text-stone-800 leading-relaxed">
           「{quote}」
         </p>

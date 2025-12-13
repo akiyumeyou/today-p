@@ -9,6 +9,10 @@ export type Character = {
   name: string;
   image: string;
   description: string;
+  voiceSettings: {
+    pitch: number;
+    rate: number;
+  };
 };
 
 export const CHARACTERS: Record<string, Character> = {
@@ -17,18 +21,30 @@ export const CHARACTERS: Record<string, Character> = {
     name: "昭和のおっちゃん",
     image: uncleImg,
     description: "少し口が悪いが根は優しい",
+    voiceSettings: {
+      pitch: 0.8,
+      rate: 1.1,
+    },
   },
   auntie: {
     id: "auntie",
     name: "世話焼きのおばちゃん",
     image: auntieImg,
     description: "親しみやすく少しお節介",
+    voiceSettings: {
+      pitch: 1.2,
+      rate: 0.9,
+    },
   },
   fortune: {
     id: "fortune",
     name: "謎の占い師",
     image: fortuneImg,
     description: "意味不明で回りくどい",
+    voiceSettings: {
+      pitch: 0.6,
+      rate: 0.8,
+    },
   },
 };
 
