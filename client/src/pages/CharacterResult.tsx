@@ -25,11 +25,41 @@ export default function CharacterResult() {
     utterance.pitch = character.voiceSettings.pitch;
     utterance.rate = character.voiceSettings.rate;
     
-    // Try to find a Japanese voice
     const voices = window.speechSynthesis.getVoices();
-    const jaVoice = voices.find(v => v.lang.includes("ja"));
-    if (jaVoice) {
-      utterance.voice = jaVoice;
+    
+    // Helper to find best voice
+    let targetVoice = voices.find(v => v.lang === "ja-JP" && v.name.includes("Google")); // Google's voices are usually good
+    
+    if (!targetVoice) {
+       // Fallback to any Japanese voice
+       targetVoice = voices.find(v => v.lang === "ja-JP" || v.lang === "ja_JP");
+    }
+
+    // Attempt to find specific gender-like voices if possible (very browser dependent)
+    // For Uncle (pitch < 1), prefer male-sounding names if available
+    if (character.id === "uncle") {
+        const maleVoice = voices.find(v => 
+            (v.lang === "ja-JP" || v.lang === "ja_JP") && 
+            (v.name.includes("Male") || v.name.includes("Ichiro") || v.name.includes("Hattori"))
+        );
+        if (maleVoice) targetVoice = maleVoice;
+    }
+
+    // For Auntie (pitch > 1), prefer female-sounding names
+    if (character.id === "auntie") {
+         const femaleVoice = voices.find(v => 
+            (v.lang === "ja-JP" || v.lang === "ja_JP") && 
+            (v.name.includes("Female") || v.name.includes("Kyoko") || v.name.includes("Haruka") || v.name.includes("O-Ren"))
+        );
+        if (femaleVoice) targetVoice = femaleVoice;
+    }
+
+    if (targetVoice) {
+      utterance.voice = targetVoice;
+    } else {
+        // Critical: If no Japanese voice is found, alert the user or log it. 
+        // Using a non-JP voice for JP text sounds "broken/bad".
+        console.warn("No Japanese voice found.");
     }
 
     window.speechSynthesis.speak(utterance);
