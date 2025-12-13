@@ -1,5 +1,5 @@
 import { useRoute, Link } from "wouter";
-import { useMemo } from "react";
+import { useMemo, useEffect, useCallback } from "react";
 import { getRandomResponse, Mood } from "@/lib/characters";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -14,10 +14,10 @@ export default function CharacterResult() {
   // but for this simple app, re-rolling on refresh is fine/fun.
   const { character, quote } = useMemo(() => getRandomResponse(mood), [mood]);
 
-  const playVoice = () => {
+  const playVoice = useCallback(() => {
     if (!window.speechSynthesis) return;
     
-    // Cancel any ongoing speech
+    // Cancel any ongoing speech to clear queue
     window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(quote);
@@ -63,7 +63,20 @@ export default function CharacterResult() {
     }
 
     window.speechSynthesis.speak(utterance);
-  };
+  }, [quote, character]);
+
+  // Auto-play voice on mount
+  useEffect(() => {
+    // Small delay to allow browser to be ready and UI to fade in
+    const timer = setTimeout(() => {
+      playVoice();
+    }, 800);
+    
+    return () => {
+      clearTimeout(timer);
+      window.speechSynthesis.cancel();
+    };
+  }, [playVoice]);
 
   if (!match) return null;
 
