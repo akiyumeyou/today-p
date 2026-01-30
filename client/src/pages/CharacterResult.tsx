@@ -1,13 +1,23 @@
 import { useRoute, Link } from "wouter";
-import { useMemo, useEffect, useCallback } from "react";
+import { useMemo, useEffect, useCallback, useRef } from "react";
 import { getRandomResponse, Mood } from "@/lib/characters";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Volume2 } from "lucide-react";
+import { submitMood, MoodType } from "@/lib/api";
 
 export default function CharacterResult() {
   const [match, params] = useRoute("/result/:mood");
   const mood = (params?.mood as Mood) || "normal";
+  const hasSubmitted = useRef(false);
+
+  // APIに気分を送信（1回のみ）
+  useEffect(() => {
+    if (!hasSubmitted.current && mood) {
+      hasSubmitted.current = true;
+      submitMood(mood as MoodType).catch(console.error);
+    }
+  }, [mood]);
 
   // Use useMemo to keep the character consistent on re-renders unless mood changes
   // In a real app we might want to persist this in state to prevent refresh changing it, 

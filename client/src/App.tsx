@@ -5,19 +5,13 @@ import { Toaster } from "@/components/ui/toaster";
 import MoodSelection from "@/pages/MoodSelection";
 import CharacterResult from "@/pages/CharacterResult";
 import NotFound from "@/pages/not-found";
-import { submitMood, MoodType } from "@/lib/api";
 
-// 起動時にURLパラメータをチェックして即座にリダイレクト
-(function checkMoodRedirect() {
-  const params = new URLSearchParams(window.location.search);
-  const mood = params.get('mood');
-  if (mood && ['happy', 'normal', 'sad'].includes(mood)) {
-    // APIに送信
-    submitMood(mood as MoodType).catch(console.error);
-    // 即座にリダイレクト（Reactレンダリング前）
-    window.location.replace(`/result/${mood}`);
-  }
-})();
+// 起動時にURLパラメータをチェックして即座にリダイレクト（シンプル版）
+const urlParams = new URLSearchParams(window.location.search);
+const moodParam = urlParams.get('mood');
+if (moodParam && ['happy', 'normal', 'sad'].includes(moodParam)) {
+  window.location.href = `/result/${moodParam}`;
+}
 
 function Router() {
   return (
