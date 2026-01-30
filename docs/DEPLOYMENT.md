@@ -1,52 +1,53 @@
 # デプロイ手順
 
-## Vercel環境変数
+## プロジェクト構成
 
-Vercelダッシュボードで以下の環境変数を設定してください：
+```
+today-p/
+├── public/
+│   ├── index.html    ← メインアプリ（1ファイル完結）
+│   └── img/
+│       ├── img1.png  ← 幸せ犬（選択画面）
+│       ├── img2.png  ← 普通犬
+│       ├── img3.png  ← 悲しい犬
+│       ├── img4.png  ← おっちゃん（結果画面）
+│       ├── img5.png  ← おばちゃん
+│       └── img6.png  ← 占い師
+├── vercel.json
+└── docs/
+    └── DEPLOYMENT.md
+```
 
-| Key | Value | 説明 |
-|-----|-------|------|
-| `VITE_LIFF_ID` | `2009012195-X4LiCzBW` | LINE LIFF ID |
-| `VITE_API_ENDPOINT` | `https://ftc.potz.jp/api` | Laravel API エンドポイント |
+## Vercelデプロイ
 
-### 設定方法
-1. https://vercel.com にアクセス
-2. プロジェクト `today2026-1` を開く
-3. Settings → Environment Variables
-4. 上記の2つを追加
-5. Deployments → 最新のデプロイで「Redeploy」
+1. https://vercel.com にログイン
+2. 「Add New」→「Project」
+3. GitHubから `today2026_1` を選択
+4. そのままデプロイ（設定不要）
 
-## GitHubリポジトリ
+## LINE連携（potz側）
 
-- URL: https://github.com/akiyumeyou/today2026_1
-- ブランチ: main
-
-## 関連プロジェクト
-
-### potz (Laravel/AWS)
-- URL: https://ftc.potz.jp
-- リポジトリ: https://github.com/akiyumeyou/potz
-- 関連ファイル:
-  - `app/Http/Controllers/Api/MoodController.php` - 気分受信API
-  - `app/Console/Commands/MoodReminderCommand.php` - LINE通知コマンド
-  - `config/services.php` - LINE設定
-
-### Laravel側の環境変数 (.env)
+### 環境変数（potz .env）
 ```
 LINE_CHANNEL_ACCESS_TOKEN=xxx
 LINE_CHANNEL_SECRET=xxx
 LINE_MOOD_LIFF_URL=https://liff.line.me/2009012195-X4LiCzBW
-LINE_MOOD_NOTIFY_USER_ID=xxx（通知先のLINE User ID）
+LINE_MOOD_NOTIFY_USER_ID=xxx
 ```
 
-## 定期通知
-
-毎日18:00にLINE通知を送信：
+### 定期通知コマンド
 ```bash
+# テスト（自分に送信）
+php artisan mood:remind --test
+
+# 本番（母に送信）
 php artisan mood:remind
 ```
 
-テスト（自分に送信）：
-```bash
-php artisan mood:remind --test
+### LINE Flex Messageの画像URL
+potzの `MoodReminderCommand.php` で使用：
+```
+https://today2026-1.vercel.app/img/img1.png
+https://today2026-1.vercel.app/img/img2.png
+https://today2026-1.vercel.app/img/img3.png
 ```

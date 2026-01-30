@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <title>今日はどんな1日？</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    h1 {
+      color: #ea580c;
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+    .subtitle {
+      color: #78716c;
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+    }
+
+    /* 選択画面 */
+    #selection { width: 100%; max-width: 400px; }
+    .mood-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .mood-btn {
+      background: white;
+      border: none;
+      border-radius: 1.5rem;
+      padding: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .mood-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+    .mood-btn:active {
+      transform: scale(0.98);
+    }
+    .mood-btn img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .mood-btn span {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #44403c;
+    }
+
+    /* 結果画面 */
+    #result {
+      display: none;
+      text-align: center;
+      width: 100%;
+      max-width: 400px;
+    }
+    .character-img {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid white;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+      margin-bottom: 1.5rem;
+    }
+    .speech-bubble {
+      background: white;
+      border-radius: 1.5rem;
+      padding: 2rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      position: relative;
+      margin-bottom: 2rem;
+    }
+    .speech-bubble::before {
+      content: '';
+      position: absolute;
+      top: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 15px solid transparent;
+      border-bottom-color: white;
+    }
+    .character-name {
+      color: #ea580c;
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+    }
+    .quote {
+      font-size: 1.3rem;
+      color: #44403c;
+      line-height: 1.8;
+    }
+    .back-btn {
+      background: #ea580c;
+      color: white;
+      border: none;
+      border-radius: 2rem;
+      padding: 1rem 3rem;
+      font-size: 1.2rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      box-shadow: 0 4px 15px rgba(234,88,12,0.3);
+    }
+    .back-btn:hover {
+      background: #c2410c;
+    }
+    .voice-btn {
+      background: #fef3c7;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      margin-left: 0.5rem;
+      font-size: 1.2rem;
+    }
+    .name-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <!-- 選択画面 -->
+  <div id="selection">
+    <h1>今日はどんな1日だった？</h1>
+    <p class="subtitle">気分を選んでね</p>
+    <div class="mood-buttons">
+      <button class="mood-btn" onclick="selectMood('happy')">
+        <img src="img/img1.png" alt="幸せ">
+        <span>幸せだった</span>
+      </button>
+      <button class="mood-btn" onclick="selectMood('normal')">
+        <img src="img/img2.png" alt="普通">
+        <span>普通</span>
+      </button>
+      <button class="mood-btn" onclick="selectMood('sad')">
+        <img src="img/img3.png" alt="悲しい">
+        <span>ちょっと悲しい</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 結果画面 -->
+  <div id="result">
+    <img id="charImg" class="character-img" src="" alt="">
+    <div class="speech-bubble">
+      <div class="name-row">
+        <span id="charName" class="character-name"></span>
+        <button class="voice-btn" onclick="playVoice()">🔊</button>
+      </div>
+      <p id="quote" class="quote"></p>
+    </div>
+    <button class="back-btn" onclick="goBack()">もう一度</button>
+  </div>
+
+  <script>
+    // キャラクターデータ
+    const CHARACTERS = {
+      uncle: {
+        name: '昭和のおっちゃん',
+        image: 'img/img4.png',
+        pitch: 0.8,
+        rate: 1.1
+      },
+      auntie: {
+        name: '世話焼きのおばちゃん',
+        image: 'img/img5.png',
+        pitch: 1.2,
+        rate: 0.9
+      },
+      fortune: {
+        name: '謎の占い師',
+        image: 'img/img6.png',
+        pitch: 0.6,
+        rate: 0.8
+      }
+    };
+
+    // セリフデータ
+    const QUOTES = {
+      happy: {
+        uncle: [
+          'おっ！ええ顔してるな！その調子で明日も笑っとけよ！',
+          'おう、景気良さそうやな！俺にもその運気分けてくれや！',
+          'へへっ、いいことがあった日は酒がうめぇもんだ。ゆっくり休めよ！'
+        ],
+        auntie: [
+          'あら〜！いいことがあったの？顔色がとっても素敵よ！',
+          'よかったわねぇ！そういう日は、美味しいお茶でも飲んでゆっくりしてね。',
+          'ふふ、あなたの笑顔が見られて私も嬉しいわ。明日もいい日になるわよ！'
+        ],
+        fortune: [
+          'ほほう…輝くオーラが見えるぞ…今日の汝は星に愛されておるな。',
+          '吉兆じゃ。その笑顔が、明日の運命をさらに引き寄せるであろう…。',
+          'ふむ、悪くない。今日の汝は、宇宙のリズムと調和しておるようじゃな。'
+        ]
+      },
+      normal: {
+        uncle: [
+          'まあ、何もないのが一番の幸せってやつよ。風呂入って寝ろ！',
+          '普通か。人生、そんな日が一番大事なんだよな。お疲れさん！',
+          'おう、今日も無事に終わったならそれが最高だ。気楽にいこうぜ！'
+        ],
+        auntie: [
+          'お疲れさま！何気ない1日こそが、実は宝物なのよねぇ。',
+          '今日も一日よく頑張ったわね。ご飯ちゃんと食べて、暖かくして寝るのよ。',
+          'あら、普通が一番よ！平穏無事、それが長生きの秘訣ってね。'
+        ],
+        fortune: [
+          'ふむ…凪のような一日か。それもまた運命の休憩時間じゃよ。',
+          '平穏こそが最強の盾じゃ。汝の今日は、静かに守られておったようじゃな。',
+          '何も起きぬこと、それ即ち奇跡なり。今日の汝は、静寂に包まれておる。'
+        ]
+      },
+      sad: {
+        uncle: [
+          'なんだ、辛気臭い顔しやがって！生きてりゃそんな日もあるさ、気にすんな！',
+          'おいおい、下向いて歩くなよ！明日は明日の風が吹くってな！',
+          'おう、今日はさっさと寝ちまえ！寝て起きたら腹も減るし元気も出るさ！'
+        ],
+        auntie: [
+          'あらあら、元気ないわねぇ。そんな時は甘いものでも食べて忘れちゃいましょ！',
+          '大丈夫よ、私がついてるわ。今日はもう休んで、明日に備えましょ。',
+          '辛いことがあったの？でもね、今日を乗り越えたあなたは偉い！花丸よ！'
+        ],
+        fortune: [
+          '雨降って地固まる…汝の涙は、明日の花を咲かせるための水じゃよ。',
+          '今は霧の中かもしれぬが、道は必ず開ける。星は汝を見捨ててはおらぬ。',
+          '悲しみもまた、人生のスパイスじゃ。味わい深い人間になるための試練じゃな。'
+        ]
+      }
+    };
+
+    let currentQuote = '';
+    let currentCharacter = null;
+
+    // URLパラメータチェック（LINE Flex Messageから直接来た場合）
+    (function() {
+      const params = new URLSearchParams(window.location.search);
+      const mood = params.get('mood');
+      if (mood && ['happy', 'normal', 'sad'].includes(mood)) {
+        // 少し遅延してから結果表示（画像読み込みのため）
+        setTimeout(() => selectMood(mood), 100);
+      }
+    })();
+
+    function selectMood(mood) {
+      // ランダムにキャラクター選択
+      const charKeys = Object.keys(CHARACTERS);
+      const charKey = charKeys[Math.floor(Math.random() * charKeys.length)];
+      currentCharacter = CHARACTERS[charKey];
+
+      // ランダムにセリフ選択
+      const quotes = QUOTES[mood][charKey];
+      currentQuote = quotes[Math.floor(Math.random() * quotes.length)];
+
+      // 画面更新
+      document.getElementById('charImg').src = currentCharacter.image;
+      document.getElementById('charName').textContent = currentCharacter.name;
+      document.getElementById('quote').textContent = '「' + currentQuote + '」';
+
+      // 画面切り替え
+      document.getElementById('selection').classList.add('hidden');
+      document.getElementById('result').classList.remove('hidden');
+      document.getElementById('result').style.display = 'block';
+
+      // 音声再生（少し遅延）
+      setTimeout(playVoice, 500);
+
+      // API送信（設定されている場合）
+      sendMoodToAPI(mood);
+    }
+
+    function playVoice() {
+      if (!window.speechSynthesis || !currentQuote) return;
+
+      window.speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(currentQuote);
+      utterance.lang = 'ja-JP';
+      utterance.pitch = currentCharacter.pitch;
+      utterance.rate = currentCharacter.rate;
+
+      const voices = window.speechSynthesis.getVoices();
+      const jpVoice = voices.find(v => v.lang === 'ja-JP' || v.lang === 'ja_JP');
+      if (jpVoice) utterance.voice = jpVoice;
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function goBack() {
+      window.speechSynthesis.cancel();
+      document.getElementById('result').classList.add('hidden');
+      document.getElementById('result').style.display = 'none';
+      document.getElementById('selection').classList.remove('hidden');
+      // URLパラメータをクリア
+      history.replaceState(null, '', window.location.pathname);
+    }
+
+    function sendMoodToAPI(mood) {
+      // API_ENDPOINT が設定されていれば送信
+      const API_ENDPOINT = ''; // 例: 'https://ftc.potz.jp/api'
+      if (!API_ENDPOINT) return;
+
+      fetch(API_ENDPOINT + '/mood', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mood: mood,
+          timestamp: new Date().toISOString()
+        })
+      }).catch(console.error);
+    }
+
+    // 音声リスト読み込み
+    if (window.speechSynthesis) {
+      speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+    }
+  </script>
+</body>
+</html>
