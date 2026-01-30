@@ -1,5 +1,5 @@
-import { Switch, Route, useLocation } from "wouter";
-import { useEffect } from "react";
+import { Switch, Route, useLocation, Redirect } from "wouter";
+import { useEffect, useState } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -8,21 +8,32 @@ import CharacterResult from "@/pages/CharacterResult";
 import NotFound from "@/pages/not-found";
 import { submitMood, MoodType } from "@/lib/api";
 
+// URLから気分パラメータを取得
+function getMoodFromUrl(): MoodType | null {
+  const params = new URLSearchParams(window.location.search);
+  const mood = params.get('mood');
+  if (mood && ['happy', 'normal', 'sad'].includes(mood)) {
+    return mood as MoodType;
+  }
+  return null;
+}
+
 // URLパラメータから直接結果画面へリダイレクト
 function MoodRedirect() {
-  const [, setLocation] = useLocation();
+  const [mood] = useState<MoodType | null>(() => getMoodFromUrl());
+  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const mood = params.get('mood') as MoodType | null;
-
-    if (mood && ['happy', 'normal', 'sad'].includes(mood)) {
-      // APIに送信
+    if (mood && !submitted) {
       submitMood(mood).catch(console.error);
-      // 結果画面へリダイレクト
-      setLocation(`/result/${mood}`);
+      setSubmitted(true);
     }
-  }, [setLocation]);
+  }, [mood, submitted]);
+
+  // URLパラメータがあれば直接結果画面へ
+  if (mood) {
+    return <Redirect to={`/result/${mood}`} />;
+  }
 
   return <MoodSelection />;
 }
