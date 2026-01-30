@@ -20,6 +20,16 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      // モジュール読み込み前にURLパラメータをチェックしてリダイレクト
+      (function() {
+        var params = new URLSearchParams(window.location.search);
+        var mood = params.get('mood');
+        if (mood && (mood === 'happy' || mood === 'normal' || mood === 'sad')) {
+          window.location.replace('/result/' + mood);
+        }
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
