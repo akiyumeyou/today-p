@@ -327,7 +327,7 @@
 
     function sendMoodToAPI(mood) {
       // API_ENDPOINT が設定されていれば送信
-      const API_ENDPOINT = ''; // 例: 'https://ftc.potz.jp/api'
+      const API_ENDPOINT = 'https://ftc.potz.jp/api';
       if (!API_ENDPOINT) return;
 
       fetch(API_ENDPOINT + '/mood', {
