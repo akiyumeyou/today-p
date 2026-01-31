@@ -178,7 +178,7 @@
       </div>
       <p id="quote" class="quote"></p>
     </div>
-    <button class="back-btn" onclick="goBack()">もう一度</button>
+    <button class="back-btn" onclick="closeWindow()">閉じる</button>
   </div>
 
   <script>
@@ -278,7 +278,7 @@
       }
 
       if (mood && ['happy', 'normal', 'sad'].includes(mood)) {
-        setTimeout(() => selectMood(mood), 300);
+        selectMood(mood);
       }
     });
 
@@ -303,7 +303,7 @@
       document.getElementById('result').style.display = 'block';
 
       // 音声再生（少し遅延）
-      setTimeout(playVoice, 500);
+      setTimeout(playVoice, 200);
 
       // API送信（設定されている場合）
       sendMoodToAPI(mood);
@@ -326,13 +326,15 @@
       window.speechSynthesis.speak(utterance);
     }
 
-    function goBack() {
+    function closeWindow() {
       window.speechSynthesis.cancel();
-      document.getElementById('result').classList.add('hidden');
-      document.getElementById('result').style.display = 'none';
-      document.getElementById('selection').classList.remove('hidden');
-      // URLパラメータをクリア
-      history.replaceState(null, '', window.location.pathname);
+      // LIFFウィンドウを閉じる
+      try {
+        window.close();
+      } catch (e) {
+        // 閉じられない場合はLINEに戻る案内
+        alert('右上の×ボタンで閉じてください');
+      }
     }
 
     function sendMoodToAPI(mood) {
