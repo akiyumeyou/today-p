@@ -148,9 +148,6 @@
   </style>
 </head>
 <body>
-  <!-- デバッグ表示（後で削除） -->
-  <div id="debug" style="position:fixed;top:0;left:0;right:0;background:#fef3c7;padding:8px;font-size:12px;z-index:9999;display:none;"></div>
-
   <!-- 選択画面 -->
   <div id="selection">
     <h1>今日はどんな1日だった？</h1>
@@ -265,17 +262,20 @@
     let currentQuote = '';
     let currentCharacter = null;
 
-    // URLパラメータチェック（LINE Flex Messageから直接来た場合）
+    // URLパラメータチェック（LINE LIFF対応）
     window.addEventListener('DOMContentLoaded', function() {
-      // URLとハッシュ両方をチェック
       const params = new URLSearchParams(window.location.search);
-      const hashParams = new URLSearchParams(window.location.hash.replace('#', '?'));
-      const mood = params.get('mood') || hashParams.get('mood');
+      let mood = params.get('mood');
 
-      // デバッグ表示
-      var debugEl = document.getElementById('debug');
-      debugEl.style.display = 'block';
-      debugEl.textContent = 'URL: ' + window.location.href + ' | mood: ' + (mood || 'なし');
+      // LIFFの場合、liff.stateから取得
+      if (!mood) {
+        const liffState = params.get('liff.state');
+        if (liffState) {
+          const decoded = decodeURIComponent(liffState);
+          const stateParams = new URLSearchParams(decoded.replace('?', ''));
+          mood = stateParams.get('mood');
+        }
+      }
 
       if (mood && ['happy', 'normal', 'sad'].includes(mood)) {
         setTimeout(() => selectMood(mood), 300);
